@@ -1,6 +1,6 @@
 include ../.env
 
-init: build start composer npm key-generate
+init: build start composer key-generate migrate seed npm npm-run npm-prod
 restart: down up
 
 build:
@@ -13,6 +13,8 @@ down:
 	docker-compose -f docker-compose.yaml --env-file=../.env down --remove-orphans
 key-generate:
 	docker-compose exec app php artisan key:generate
+migrate:
+	docker-compose exec app php artisan migrate
 
 composer:
 	docker-compose exec app cp json composer.json
@@ -20,5 +22,9 @@ composer:
 	docker-compose exec app composer require robthree/twofactorauth
 npm:
 	docker-compose exec app npm install
+npm-build:
+	docker-compose exec app npm run build
+npm-prod:
+	docker-compose exec app npm run prod
 seed:
 	docker-compose exec app php artisan db:seed
