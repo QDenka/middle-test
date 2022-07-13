@@ -20,7 +20,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->longText('text');
+            $table->unsignedBigInteger('category_id')->nullable();
+            $table->softDeletes();
             $table->timestamps();
+
+            $table->foreign('category_id')->references('id')->on('categories');
         });
     }
 
