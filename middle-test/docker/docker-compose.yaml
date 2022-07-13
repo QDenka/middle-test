@@ -1,0 +1,50 @@
+version: "3.3"
+
+services:
+  db:
+    platform: linux/x86_64
+    image: mysql:5.7
+    restart: on-failure
+    container_name: mobecan-mysql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DOCKER_DB_PORT:-3351}:3306"
+    volumes:
+      - ./volumes/mysql/data:/var/lib/mysql
+    networks:
+      - mobecan
+
+  app:
+    build:
+      context: ./
+      dockerfile: ./php/Dockerfile
+    container_name: mobecan-app
+    restart: on-failure
+    user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
+    volumes:
+      - ./volumes/app/conf.d:/.config
+      - ../:/var/www/html
+      - ./volumes/php/config/extend-php.ini:/usr/local/etc/php/conf.d/extend-php.ini
+    depends_on:
+      - db
+    networks:
+      - mobecan
+
+  webserver:
+    image: nginx:1.21.6-alpine
+    container_name: mobecan-web
+    restart: on-failure
+    volumes:
+      - ../:/var/www/html
+      - ./volumes/nginx/config/:/etc/nginx/conf.d
+      - ./volumes/nginx/logs:/var/log/nginx
+    ports:
+      - "${DOCKER_WEBSERVER_PORT:-8086}:80"
+    networks:
+      - mobecan
+
+networks:
+  mobecan:
+    driver: "bridge"
